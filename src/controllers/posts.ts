@@ -3,11 +3,6 @@ import Posts from '../models/Posts';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 // Interface for the Authenticated Request
 interface AuthenticatedRequest extends Request {
@@ -51,9 +46,8 @@ export const upLoadImage = async (req: Request, res: Response) => {
   }
 };
 
-
 // Post Content
-export const postContent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const postContent = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.userId;
   const { image, content, category } = req.body;
 
@@ -71,10 +65,10 @@ export const postContent = async (req: AuthenticatedRequest, res: Response): Pro
 };
 
 // Get Posts
-export const getPosts = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getPosts = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.userId;
   try {
-    const posts = await Posts.find({ createdBy: userId }).sort("-createdAt");
+    const posts = await Posts.find({}).sort("-createdAt");
     res.status(200).json({ posts, nbhits: posts.length });
   } catch (error) {
     res.status(500).json({ msg: error.message });
