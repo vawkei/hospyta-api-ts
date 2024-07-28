@@ -100,25 +100,38 @@ export const getSinglePost = async (req: AuthenticatedRequest, res: Response)=> 
 };
 
 // Edit Post
-export const editPost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const userId = req.user?.userId;
+export const editPost = async (req:AuthenticatedRequest, res:Response) => {
+  const userId = req.user.userId;
   const postId = req.params.id;
-  const { image, content, category } = req.body;
 
-  if (!image || !content || !category) {
-    res.status(400).json({ msg: "Input fields shouldn't be empty" });
-    return;
+  const { image, content, category, userID } = req.body; // we will be expecting a     userID createdby from the frontend;
+
+  if (!image || !content || !category || !userID) {
+    return res.status(400).json({ msg: "Input fields shouldn't be empty" });
   }
+
+  if(userId !== userID){
+    return res.status(401).json({msg:"not allowed to edit"})
+  };
 
   try {
     const editedPost = await Posts.findOneAndUpdate(
       { _id: postId, createdBy: userId },
-      { image, content, category },
-      { new: true, runValidators: true }
+      {
+        image: image,
+        content: content,
+        category: category,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
     );
-    res.status(200).json({ msg: "Post updated", editedPost });
+
+    res.status(200).json({ msg: "post updated" });
   } catch (error) {
-    res.status(500).json({ msg: error.message });
+    console.log(error);
+    res.status(500).json({ msg: error });
   }
 };
 
