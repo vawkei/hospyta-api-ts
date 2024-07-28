@@ -76,15 +76,23 @@ export const getPosts = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 // Get Single Post
-export const getSinglePost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getSinglePost = async (req: AuthenticatedRequest, res: Response)=> {
+  
   const postId = req.params.id;
+  console.log(postId);
+
 
   try {
-    const post = await Posts.findOne({ _id: postId, createdBy: req.user?.userId });
+    const post = await Posts.findOne({ _id: postId});
     if (!post) {
       res.status(404).json({ msg: `No post with id: ${postId}` });
       return;
-    }
+    };
+
+    post.postViews.viewCount ++;
+
+    await post.save();
+
     res.status(200).json({ post });
   } catch (error) {
     res.status(500).json({ msg: error.message });
