@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "typeRoots": ["./node_modules/@types", "./types"]
+  },
+
+  "ts-node": {
+    "files": true
+  },
+  "files": ["src/index.ts", "types/custom.d.ts"],
+
+  "include": ["src/**/*", "types/**/*.d.ts"],
+  // "include": ["src/**/*", "types/custom.d.ts"],
+  "exclude": ["node_modules"]
+}
