@@ -2,14 +2,14 @@ import { Request, Response } from 'express';
 import Posts from '../models/Posts';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-
+import crypto from 'crypto';
 
 // Interface for the Authenticated Request
 interface AuthenticatedRequest extends Request {
   user?: { userId: string; name: string };
 }
 
-// Upload Image
+// Upload Image================================================================>
 
 export const upLoadImage = async (req: Request, res: Response) => {
   if (!req.files || !req.files.image) {
@@ -46,7 +46,7 @@ export const upLoadImage = async (req: Request, res: Response) => {
   }
 };
 
-// Post Content
+// Post Content==================================================================>
 export const postContent = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.userId;
   const { image, content, category } = req.body;
@@ -64,7 +64,7 @@ export const postContent = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-// Get Posts
+// Get Posts====================================================================>
 export const getPosts = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.userId;
   try {
@@ -75,7 +75,7 @@ export const getPosts = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-// Get Single Post
+// Get Single Post==============================================================>
 export const getSinglePost = async (req: AuthenticatedRequest, res: Response)=> {
   
   const postId = req.params.id;
@@ -99,7 +99,7 @@ export const getSinglePost = async (req: AuthenticatedRequest, res: Response)=> 
   }
 };
 
-// Edit Post
+// Edit Post=====================================================================>
 export const editPost = async (req:AuthenticatedRequest, res:Response) => {
   const userId = req.user.userId;
   const postId = req.params.id;
@@ -135,7 +135,7 @@ export const editPost = async (req:AuthenticatedRequest, res:Response) => {
   }
 };
 
-// Delete Post
+// Delete Post==================================================================>
 export const deletePost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userId = req.user?.userId;
   const postId = req.params.id;
@@ -151,3 +151,99 @@ export const deletePost = async (req: AuthenticatedRequest, res: Response): Prom
     res.status(500).json({ msg: error.message });
   }
 };
+
+//  postComments==================================================================>
+
+
+
+export const postComments = async (req: AuthenticatedRequest, res: Response) => {
+  const postId = req.params.id; //66a56cc4256d52ab84d554b0
+
+  const { comment } = req.body;
+  if (!comment) {
+    return res.status(400).json({ msg: "please leave a comment" });
+  }
+
+  //work on the date for the comment:
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const day = new Date().getDate();
+  const month = new Date().getMonth();
+  const adjustedMonth = months[month];
+  console.log("Month:", month);
+
+  const date = new Date();
+  const year = new Date().getFullYear();
+
+  const commentDate = `${day}-${adjustedMonth}-${year} ${date.toLocaleTimeString()}`;
+  console.log("Date comment was made:", commentDate);
+
+  try {
+    const post = await Posts.findOne({ _id: postId });
+    if (!post) {
+      return res.status(404).json({ msg: `no post with id: ${postId}` });
+    }
+    // creating an id for the comments cause mongodb wont.
+    //Generate a uniqueId:
+    
+    const customizedID = crypto.randomBytes(12).toString("hex");
+    console.log(customizedID)
+
+
+    post.comments.push({
+      comments:comment,
+      timeOfComment: commentDate,
+      userId: req.user.userId,
+      name: req.user.name,
+      commentIDBYCRYPTO:customizedID  
+    });
+
+    await post.save();
+
+    res.status(201).json({ msg: "comment added", post });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+
+  res.status(201).json({ msg: commentDate });
+};
+
+
+//7. getComments===============================================================:
+//this works just like getSinglePost.
+export const getComments = async(req:AuthenticatedRequest,res:Response)=>{
+  const postId = req.params.id;
+  const userID = req.user.userId;
+  //postID: 66a77c2901509e3181ecb8a9
+  try{
+    const post = await Posts.findOne({_id:postId});
+    if(!post){
+      return res.status(404).json(`no post with id: ${postId}`)
+    };
+
+    const comments = post.comments
+    console.log(comments);
+    // const getSingleComment = post.comments.filter((comment)=>{
+    //    return comment.userId === userID
+    // })
+    // console.log(getSingleComment);
+    res.status(200).json({comments:comments})
+  }catch(error){
+    console.log(error)
+    res.status(500).json(error)
+  };
+}

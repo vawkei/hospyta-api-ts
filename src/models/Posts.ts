@@ -30,6 +30,9 @@ const PostSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Please provide a user"],
     },
+    comments: {
+      type: [Object],
+    },
     createdAt: {
       type: Date,
       default: Date.now,
